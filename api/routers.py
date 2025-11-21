@@ -18,24 +18,30 @@ def get_card(card_id: int, db: Session = Depends(get_db)):
 
 @router.post("/cards/search", response_model=SearchResp)
 def search_cards(body: SearchBody, db: Session = Depends(get_db)):
-    # MVP: simple SQL fallback; Meilisearch will be added in next step
-    q = db.query(Card)
-    if body.keyword:
-        kw = f"%{body.keyword}%"
-        q = q.filter(
-            (Card.cn_name.like(kw)) | (Card.jp_name.like(kw)) | (Card.card_number.like(kw))
-        )
-    if body.colors:
-        q = q.filter(Card.color.in_(body.colors))
-    if body.rarities:
-        q = q.filter(Card.rarity.in_(body.rarities))
-    if body.types:
-        q = q.filter(Card.type.in_(body.types))
-    if body.series:
-        q = q.filter(Card.series.in_(body.series))
+    try:
+        # MVP: simple SQL fallback; Meilisearch will be added in next step
+        q = db.query(Card)
+        
+        # Apply filters
+        if body.keyword:
+            kw = f"%{body.keyword}%"
+            q = q.filter(
+                (Card.cn_name.like(kw)) | (Card.jp_name.like(kw)) | (Card.card_number.like(kw))
+            )
+        if body.colors:
+            q = q.filter(Card.color.in_(body.colors))
+        if body.rarities:
+            q = q.filter(Card.rarity.in_(body.rarities))
+        if body.types:
+            q = q.filter(Card.type.in_(body.types))
+        if body.series:
+            q = q.filter(Card.series.in_(body.series))
 
-    page_size = min(max(body.page_size or 50, 1), 200)
-    items = q.limit(page_size).all()
-    return {"items": items, "next_cursor": None}
-
-
+        page_size = min(max(body.page_size or 50, 1), 200)
+        items = q.limit(page_size).all()
+        return {"items": items, "next_cursor": None}
+    except Exception as e:
+        import traceback
+        print(f"Error in search_cards: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
