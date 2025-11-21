@@ -31,11 +31,14 @@ MYSQL_ROOT_PASSWORD="Zxcard@2024"  # 默认密码，建议修改
 MYSQL_DATABASE="zxcard"
 APP_DIR="/opt/zx-card-py"
 GITHUB_REPO="https://github.com/kll85757/zx-card-py.git"
+WECHAT_APPID="wx4387eb448d6892c5"  # 微信小程序 AppID
+WECHAT_SECRET=""  # 微信小程序 AppSecret（需要在微信公众平台获取）
 
 echo -e "${BLUE}配置信息：${NC}"
 echo "MySQL 密码: ${MYSQL_ROOT_PASSWORD}"
 echo "数据库名: ${MYSQL_DATABASE}"
 echo "安装目录: ${APP_DIR}"
+echo "小程序 AppID: ${WECHAT_APPID}"
 echo ""
 read -p "继续安装？(y/n): " confirm
 if [[ ! $confirm =~ ^[Yy]$ ]]; then
@@ -273,8 +276,8 @@ MYSQL_DB=${MYSQL_DATABASE}
 USE_SQLITE=false
 MEILI_DISABLED=true
 REDIS_DISABLED=true
-WECHAT_APPID=wx_your_appid
-WECHAT_SECRET=your_secret
+WECHAT_APPID=${WECHAT_APPID}
+WECHAT_SECRET=${WECHAT_SECRET}
 EOF
 
 # 创建 systemd 服务
@@ -356,14 +359,28 @@ echo "查看日志: sudo journalctl -u zxcard-api -f"
 echo "重启服务: sudo systemctl restart zxcard-api"
 echo "停止服务: sudo systemctl stop zxcard-api"
 echo ""
-echo -e "${YELLOW}下一步：${NC}"
-echo "1. 配置防火墙开放 8000 端口"
-echo "2. 配置 Nginx 反向代理（可选）"
-echo "3. 配置域名和 HTTPS 证书"
-echo "4. 在小程序中配置 API 地址"
+echo -e "${BLUE}微信小程序配置：${NC}"
+echo "AppID: ${WECHAT_APPID}"
+echo "AppSecret: 需要在微信公众平台获取"
 echo ""
-echo -e "${YELLOW}注意：${NC}"
-echo "- 默认 MySQL 密码已设置，建议修改"
-echo "- 生产环境建议使用腾讯云 MySQL"
-echo "- 记得定期备份数据库"
+echo -e "${YELLOW}下一步（重要）：${NC}"
+echo "1. 配置防火墙: sudo ufw allow 8000/tcp && sudo ufw enable"
+echo "2. 申请域名并配置 DNS 解析到服务器 IP"
+echo "3. 配置 HTTPS 证书（微信小程序强制要求）"
+echo "4. 在微信公众平台配置服务器域名白名单"
+echo "5. 获取并配置小程序 AppSecret（.env 文件）"
+echo ""
+echo -e "${BLUE}微信小程序后台配置：${NC}"
+echo "访问: https://mp.weixin.qq.com"
+echo "路径: 开发管理 → 开发设置"
+echo "  - 获取 AppSecret（首次需生成）"
+echo "  - 配置 request 合法域名: https://your-domain.com"
+echo "  - 注意：必须使用 HTTPS，不支持 HTTP 和 IP 地址"
+echo ""
+echo -e "${YELLOW}注意事项：${NC}"
+echo "- 微信小程序要求必须使用 HTTPS"
+echo "- 默认 MySQL 密码建议修改"
+echo "- 建议使用腾讯云 MySQL（生产环境）"
+echo "- 定期备份数据库"
+echo "- 查看完整对接指南: WECHAT_MINIPROGRAM_GUIDE.md"
 echo ""
